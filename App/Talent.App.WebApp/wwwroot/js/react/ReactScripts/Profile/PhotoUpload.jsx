@@ -1,130 +1,133 @@
-﻿import React, { Component, Fragment } from 'react';
+﻿import React, { Component } from 'react';
 import Cookies from 'js-cookie';
+import PropTypes from 'prop-types';
+import { Grid, Icon, Button, Image } from 'semantic-ui-react';
 
 export default class PhotoUpload extends Component {
-
     constructor(props) {
         super(props);
-        this.state = ({
-            profilePhoto: "",
-            edited: false
-        });
-
+        this.state = {
+            file: null,
+            profilePhotoUrl: this.props.profilePhotoUrl 
+        }
         this.handleImageChange = this.handleImageChange.bind(this);
-        this.renderPhoto = this.renderPhoto.bind(this);
-        this.renderImage = this.renderImage.bind(this);
-        this.renderNoImage = this.renderNoImage.bind(this);
-        this.renderUploadButton = this.renderUploadButton.bind(this);
-        this.uploadPhoto = this.uploadPhoto.bind(this);
-        this.updateDisplayedPhoto = this.updateDisplayedPhoto.bind(this);
+        this.handleUploadImage = this.handleUploadImage.bind(this);
     };
 
-
-    render() {
-        return (
-            <div className="ui grid">
-                <div className='ui row'>
-                    <div className="ui sixteen wide column">
-                        {this.renderPhoto()}
-                        <input
-                            type="file"
-                            name="file"
-                            id="profilePhoto"
-                            accept="image/*"
-                            style={{ display: "none" }}
-                            onChange={this.handleImageChange}
-                        />
-                    </div>
-                </div>
-                {this.state.edited ? this.renderUploadButton() : null}
-            </div>
-        );
-    }
-
-    handleImageChange(event) {
-        if (event.target.files && event.target.files[0]) {
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.profilePhotoUrl !== this.props.profilePhotoUrl)
+        {
             this.setState({
-                profilePhoto: URL.createObjectURL(event.target.files[0]),
-                edited: true
+                profilePhotoUrl: nextProps.profilePhotoUrl
             });
         }
-    }
+    };
 
-    renderPhoto() {
-        return this.state.profilePhoto ? this.renderImage() : this.renderNoImage();
-    }
+    handleImageChange(e) {
+        e.preventDefault();
+        let file = e.target.files[0];
+        let reader = new FileReader();
+        reader.onloadend = () =>
+        {
+            this.setState({
+                file: file,
+                profilePhotoUrl: reader.result
+            });
+        }
+        reader.readAsDataURL(file)
+    };
 
-    renderImage() {
-        return (
-            <label htmlFor="profilePhoto" className="ui image">
-                <img src={this.state.profilePhoto} className="ui medium circular image" />
-            </label>
-        );
-    }
+    handleUploadImage() {
+        let data = new FormData();
+        data.append('file', this.state.file);
+        
 
-    renderNoImage() {
-        return (
-            <label htmlFor="profilePhoto" className="ui icon">
-                <i className="camera retro circular huge icon"></i>
-            </label>
-        );
-    }
-
-    renderUploadButton() {
-        return (
-            <div className='ui row'>
-                <div className="ui sixteen wide column">
-                    <button className="ui upload teal button" onClick={this.updateDisplayedPhoto}>
-                        <i aria-hidden="true" className="upload icon"></i>
-                        Upload
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-   
-    updateDisplayedPhoto(event) {
-        event.preventDefault();
-        this.setState({
-            edited: false
-        });
-    }
-
-    uploadPhoto(event) {
-        event.preventDefault();
-
-        var formData = new FormData();
-        formData.append('file', $('#profilePhoto')[0].files[0]);
-
-        var cookies = Cookies.get('talentAuthToken');
         $.ajax({
-            url: this.props.savePhotoUrl,
+            url: 'http://localhost:60290/profile/profile/updateProfilePhoto',
             headers: {
-                'Authorization': 'Bearer ' + cookies
+                
+                'Authorization': 'Bearer ' + Cookies.get('talentAuthToken')
             },
             type: "POST",
-            data: formData,
+            data: data,
+            cache: false,
             processData: false,
             contentType: false,
             success: function (res) {
-                console.log(res)
-                if (res.success == true) {
-                    TalentUtil.notification.show("Profile photo uploaded sucessfully", "success", null, null)
+              
+                if (res.success) {
+                     this.setState(Object.assign({}, this.state, { file: null }));
+                    this.props.updateProfileData(res.data);
+                    TalentUtil.notification.show("Update photo successfully", "success", null, null);
                 } else {
-                    TalentUtil.notification.show("Profile did not upload successfully", "error", null, null)
+                    TalentUtil.notification.show(res.message, "error", null, null);
+                  
                 }
-
-                this.setState({
-                    edited: false
-                });
-
             }.bind(this),
-            error: function (res, a, b) {
-                console.log(res)
-                console.log(a)
-                console.log(b)
+            error: function (res, status, error) {
+                TalentUtil.notification.show("There is an error when updating Image - " + error, "error", null, null);
             }
-        })
+        });
+       
+    }
+    
+
+    render() {
+        
+        let button = null;
+        if (this.state.file) {
+            button = <div>
+                <br/>
+                <Button
+                    type='reset'
+                    compact
+                    color='teal'
+                    onClick={this.handleUploadImage}
+                >
+                    <Icon name='upload' />
+                    Upload
+                </Button>
+            </div>
+        }
+
+        let imageView;
+        if (this.state.profilePhotoUrl) {
+            
+            imageView = <Image
+                src={this.state.profilePhotoUrl}
+                size='medium'
+                circular
+                style={{ width: '112px', height: '112px' }}
+                onClick={() => this.upload.click()}
+            />
+        } else {
+            
+            imageView = <Icon
+                circular
+                type='file'
+                size='huge'
+                name='camera retro'
+                style={{ width: '112px', height: '112px' }}
+                onClick={() => this.upload.click()}
+            />
+        }
+
+        return (
+            <Grid.Column textAlign='center'>
+                <input
+                    type="file"
+                    ref={(ref) => this.upload = ref}
+                    style={{ display: 'none' }}
+                    onChange={this.handleImageChange}
+                />
+                {imageView}
+                {button}
+            </Grid.Column>
+        )
     }
 }
+
+PhotoUpload.propTypes = {
+    savePhotoUrl: PropTypes.string.isRequired,
+    updateProfileData: PropTypes.func.isRequired,
+};

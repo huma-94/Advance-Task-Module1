@@ -43,7 +43,7 @@ export default class SocialMediaLinkedAccount extends React.Component {
     }
 
     saveLinkedAccounts() {
-        console.log(this.state.newLinkedAccounts)
+       // console.log(this.state.newLinkedAccounts)
         let data = { linkedAccounts: {} }
         data.linkedAccounts = Object.assign({}, this.state.newLinkedAccounts)
         this.props.saveProfileData(data)

@@ -16,7 +16,7 @@ export class Address extends Component {
                 number: "",
                 street: "",
                 suburb: "",
-                postcode: "",
+                postCode: "",
                 country: "",
                 city: "",
                 region: ""
@@ -29,7 +29,7 @@ export class Address extends Component {
             newaddressData: addressData
         }
         
-        console.log("Location Constructor",this.state.newaddressData);
+       // console.log("Location Constructor",this.state.newaddressData);
         
         this.openEdit = this.openEdit.bind(this)
         this.closeEdit = this.closeEdit.bind(this)
@@ -41,7 +41,7 @@ export class Address extends Component {
 
     selectCountry(val) {
         this.setState({ country: val });
-        console.log("Country:" + val);
+        //console.log("Country:" + val);
         let event = {
             target: {
                 name: "country",
@@ -53,7 +53,7 @@ export class Address extends Component {
 
     selectRegion(val) {
         this.setState({ region: val });
-        console.log("City:" + val);
+        //console.log("City:" + val);
         let event = {
             target: {
                 name: "city",
@@ -71,7 +71,7 @@ export class Address extends Component {
             showEditSection: true,
             newaddressData: addressData
         })
-        console.log("Open Edit details" + this.state.newaddressData)
+       // console.log("Open Edit details" + this.state.newaddressData)
     }
 
     closeEdit() {
@@ -90,8 +90,8 @@ export class Address extends Component {
     }
 
     saveaddressData() {
-        console.log(this.props.componentId)
-        console.log(this.state.newaddressData)
+       // console.log(this.props.componentId)
+        //console.log(this.state.newaddressData)
         const data = Object.assign({}, this.state.newaddressData)
        // this.props.controlFunc(this.props.componentId, data)
         this.props.updateProfileData({ address: data })
@@ -195,18 +195,18 @@ export class Address extends Component {
                                     {popCities}
                                 </select>
                             </div>
-                            <div>
+                            
                             <ChildSingleInput
                                     inputType="text"
                                     label="PostCode"
-                                    name="postcode"
+                                    name="postCode"
                                     value={this.state.newaddressData.postCode}
                                     controlFunc={this.handleChange}
                                     maxLength={80}
                                     placeholder="Enter postcode"
                                     errorMessage="Please enter a valid postcode details"
                                 />
-                            </div>
+                            
 
                         </Form.Group>
                         <button type="button" className="ui teal button" onClick={this.saveaddressData}>Save</button>
@@ -220,7 +220,7 @@ export class Address extends Component {
     renderDisplay() {
 
         let fullAddress = this.props.addressData ? `${this.props.addressData.number} ${this.props.addressData.street} ${this.props.addressData.suburb}  ${this.props.addressData.postCode}` : ""
-        console.log("Address Display",fullAddress);
+       // console.log("Address Display",fullAddress);
         
         return (
             <div className='row'>
@@ -257,18 +257,18 @@ export class Nationality extends React.Component {
 
     changevalue(value) {
 
-        console.log("Entered in the national-change-function:" + value);
+       // console.log("Entered in the national-change-function:" + value);
 
         this.setState({
             newnationalityData: value
         })
 
-        console.log("After setting the status: " + this.state.newnationalityData);
+       // console.log("After setting the status: " + this.state.newnationalityData);
     }
 
     saveNationality() {
         const data = Object.assign({}, this.state.newnationalityData)
-        console.log("New Nationality Data",this.state.newnationalityData);
+        //console.log("New Nationality Data",this.state.newnationalityData);
         this.props.saveProfileData({ nationality: this.state.newnationalityData })
         this.setState({
             showEditSection: false
@@ -278,14 +278,14 @@ export class Nationality extends React.Component {
 
     openEdit() {
         const nationalityData = Object.assign({}, this.props.nationalityData)
-        console.log("Open Edit Values:" + this.props.nationalityData);
+       // console.log("Open Edit Values:" + this.props.nationalityData);
         this.setState({
             showEditSection: true
         })
         this.state = {
             newnationalityData: nationalityData
         }
-        console.log("Open Edit Values:" + this.state.newnationalityData);
+        //console.log("Open Edit Values:" + this.state.newnationalityData);
     }
 
     render() {
@@ -499,15 +499,15 @@ export class Nationality extends React.Component {
 
         }));
 
-        console.log("Nationality Render Display:" + this.props.nationalityData);
+       // console.log("Nationality Render Display:" + this.props.nationalityData);
         return (
             <div className='row'>
-                <div className="ui sixteen wide column">
+                <div className="ui sixteen wide column" >
                     <React.Fragment>
                         
                             <Form.Group>
                                 <Form.Select
-                                    fluid
+                                    fixed
                                     search
                                     selection
                                     options={nationalityOptions}
@@ -732,15 +732,16 @@ export class Nationality extends React.Component {
 
         }));
 
-        console.log("Render Edit");
+      //  console.log("Render Edit");
         return (
+            <div className="ui grid">
             <div className='row'>
                 <div className="ui sixteen wide column">
                     <React.Fragment>
-                        <Form>
+                        <Form fixed>
                             <Form.Group>
                                 <Form.Select
-                                    fluid
+                                    fixed
                                     search
                                     selection
                                     options={nationalityOptions}
@@ -755,6 +756,7 @@ export class Nationality extends React.Component {
                     </React.Fragment>
                     <button type="button" className="ui teal button" onClick={this.saveNationality.bind(this)}>Save</button>
                 </div>
+            </div>
             </div>
 
         );

@@ -1,194 +1,107 @@
-﻿import React from 'react';
+﻿import React, { Component } from 'react';
 import Cookies from 'js-cookie';
-export class Images extends React.Component {
+import { Button } from 'semantic-ui-react'
 
+export default class PhotoUpload extends Component {
     constructor(props) {
         super(props);
-
-        this.loadImages = this.loadImages.bind(this);
-        this.selectFileToUpload = this.selectFileToUpload.bind(this);
-        this.fileSelectedHandler = this.fileSelectedHandler.bind(this);
-        this.removeFile = this.removeFile.bind(this);
-        this.fileUploadHandler = this.fileUploadHandler.bind(this);
-        this.maxFileSize = 2097152;
-        this.maxNoOfFiles = 5;
-        this.acceptedFileType = ["image/gif", "image/jpeg", "image/png", "image/jpg"];
-
+        //const imageId = props.imageId ? props.imageId : "https://react.semantic-ui.com/images/wireframe/square-image.png"
         this.state = {
-            selectedFile: [],
-            selectedFileName: [],
-            imageSrc: [],
-            imageId: [],
-            selectedRemoveFileId: [],
-            currentNoOfFiles: 0
+            uploadButton: "none",
+            newFileUrl: null,
+            newFile: null
         }
+        this.fileSelectedChange = this.fileSelectedChange.bind(this);
+        this.fileUpload = this.fileUpload.bind(this);
+        this.uploadAndSave = this.uploadAndSave.bind(this);
     };
 
-    loadImages(Id) {
-
-        var cookies = Cookies.get('talentAuthToken');
-
-        $.ajax({
-            url: 'http://localhost:60290/profile/profile/getEmployerProfileImage/?id=' + Id,
-            headers: {
-                'Authorization': 'Bearer ' + cookies,
-                'Content-Type': 'application/json'
-            },
-            type: "GET",
-            contentType: "application/json",
-            dataType: "json",
-            success: function (res) {
-
-                let imageSrcArr = [];
-                let imageIdArr = [];
-                let selectedFileArr = [];
-
-                if (res.employerProfile.length > 0) {
-                    for (var i = 0; i < res.employerProfile.length; i++) {
-                        imageSrcArr.push("http://localhost:60290/profile/profile/getEmployerProfileImages/?Id=" + res.employerProfile[i].fileName);
-                        imageIdArr.push(res.employerProfile[i].id);
-                        selectedFileArr.push("");
-                    }
-                }
-
-                this.setState({
-                    imageSrc: imageSrcArr,
-                    imageId: imageIdArr,
-                    selectedFile: selectedFileArr,
-                    selectedFileName: [],
-                    selectedRemoveFileId: [],
-                    currentNoOfFiles: res.employerProfile.length
-                });
-            }.bind(this)
+    uploadAndSave() {
+        debugger;
+        let file = this.state.newFile;
+        const form = new FormData();
+        form.append('file', file);
+        let profilePhotoUrl = "/images/" + file.name;
+        console.log(profilePhotoUrl);
+        this.props.updateProfileData({
+            profilePhotoUrl
         });
+        this.fileUpload(form);
     }
 
-    selectFileToUpload() {
-        document.getElementById('selectFile').click();
-    }
-
-    fileSelectedHandler(event) {
-
-        let localSelectedFile = this.state.selectedFile;
-        let localSelectedFileName = this.state.selectedFileName;
-        let localImageSrc = this.state.imageSrc;
-        let localImageId = this.state.imageId;
-        let localCurrentNoOfFiles = this.state.currentNoOfFiles;
-
-        for (let i = 0; i < event.target.files.length; i++) {
-
-            if (event.target.files[i].size > this.maxFileSize || this.acceptedFileType.indexOf(event.target.files[i].type) == -1) {
-                TalentUtil.notification.show("Max file size is 2 MB and supported file types are *.jpg, *.jpeg, *.png, *.gif", "error", null, null);
-            } else if (localCurrentNoOfFiles >= this.maxNoOfFiles) {
-                TalentUtil.notification.show("Exceed Maximum number of files allowable to upload", "error", null, null);
-            } else {
-                localSelectedFile = localSelectedFile.concat(event.target.files[i]),
-                localSelectedFileName = localSelectedFileName.concat(event.target.files[i].name),
-                localImageSrc = localImageSrc.concat(window.URL.createObjectURL(event.target.files[i])),
-                localImageId = localImageId.concat('0'),
-                localCurrentNoOfFiles = localCurrentNoOfFiles + 1
-            }
-        }
-
-        this.setState({
-            selectedFile: localSelectedFile,
-            selectedFileName: localSelectedFileName,
-            imageSrc: localImageSrc,
-            imageId: localImageId,
-            currentNoOfFiles: localCurrentNoOfFiles
-        })
-    }
-
-    removeFile(event) {
-        let localselectedRemoveFileId = this.state.selectedRemoveFileId;
-        let localSelectedFile = this.state.selectedFile;
-        let localSelectedFileName = this.state.selectedFileName;
-        let localImageSrc = this.state.imageSrc;
-        let localImageId = this.state.imageId;
-        let localCurrentNoOfFiles = this.state.currentNoOfFiles;
-
-        localselectedRemoveFileId = localselectedRemoveFileId.concat(event.target.getAttribute('imageid'));
-        localSelectedFile.splice(event.target.getAttribute('value'), 1);
-        localSelectedFileName.splice(event.target.getAttribute('value'), 1);
-        localImageSrc.splice(event.target.getAttribute('value'), 1);
-        localImageId.splice(event.target.getAttribute('value'), 1);
-
-        this.setState({
-            selectedFile: localSelectedFile,
-            selectedFileName: localSelectedFileName,
-            imageSrc: localImageSrc,
-            imageId: localImageId,
-            selectedRemoveFileId: localselectedRemoveFileId,
-            currentNoOfFiles: this.state.currentNoOfFiles - 1
-        })
-    }
-
-    fileUploadHandler(Id) {
-        let data = new FormData();
-        for (var i = 0; i < this.state.selectedFile.length; i++) {
-            if (this.state.selectedFile[i] != "") {
-                data.append('file' + i, this.state.selectedFile[i]);
-            }
-        }
-
-        data.append('Id', Id);
-        data.append('FileRemoveId', this.state.selectedRemoveFileId);
-
+    fileUpload(form) {
+        var url = this.props.savePhotoUrl;
         var cookies = Cookies.get('talentAuthToken');
-
         $.ajax({
-            url: 'http://localhost:60290/profile/profile/addEmployerProfileImages',
+            url: url,
             headers: {
                 'Authorization': 'Bearer ' + cookies
             },
             type: "POST",
-            data: data,
-            cache: false,
+            data: form,
             processData: false,
             contentType: false,
             success: function (res) {
-                if (res.success) {
-                    this.loadImages(Id);
+                debugger;
+                console.log(res)
+                if (res.success == true) {
+                    TalentUtil.notification.show("Profile updated sucessfully", "success", null, null)
                 } else {
-                    TalentUtil.notification.show(res.message, "error", null, null);
+                   
+                    TalentUtil.notification.show("Profile did not update successfully", "error", null, null)
                 }
+
             }.bind(this),
-            error: function (res, status, error) {
-        
-                TalentUtil.notification.show("There is an error when updating Images - " + error, "error", null, null);
+            error: function (res, a, b) {
+                console.log(res)
+                console.log(a)
+                console.log(b)
             }
-        });
+        })
     }
 
+    fileSelectedChange() {
+        debugger;
+        let acceptedExt = ["image/png", "image/jpg", "image/jpeg", "image/gif"];
+        
+        let selectedFile = event.target.files[0];
+        console.log(event.target.files[0]);
+        if (this.state.newFile) {
+            URL.revokeObjectURL(this.state.newFileUrl);
+        }
+        if (acceptedExt.includes(selectedFile.type)) {
+            this.setState({
+                uploadButton: "",
+                newFileUrl: URL.createObjectURL(event.target.files[0]),
+                newFile: event.target.files[0]
+            })
+        }
+    }
+    
+
     render() {
-        let showProfileImg = [];
-
-        for (let i = 0; i < this.state.currentNoOfFiles; i++) {
-            if (this.state.imageSrc[i] != null) {
-                showProfileImg.push(<span><img style={{ height: 112, width: 112, borderRadius: 55 }} className="ui small" src={this.state.imageSrc[i]} alt="Image Not Found" /><i className="remove sign icon" onClick={this.removeFile} value={i} imageid={this.state.imageId[i]}></i></span>);
-            }
+        let server = this.props.savePhotoUrl;
+        let n = server.search("/profile");
+        let url = server.slice(0, n);
+        let imageId = this.props.imageId ? url + this.props.imageId : "https://react.semantic-ui.com/images/wireframe/square-image.png";
+        if (this.state.newFileUrl) {
+            imageId = this.state.newFileUrl;
         }
-
-        if (this.state.currentNoOfFiles < this.maxNoOfFiles) {
-            showProfileImg.push(<span><i className="huge circular camera retro icon" style={{ alignContent: 'right', verticalAlign: 'top' }} onClick={this.selectFileToUpload}></i></span>);
-        }
-
+        debugger;
         return (
-            <div className="row">
-                <div className="four wide column">
-                    <h3>Images</h3>
-                    <div className="tooltip">Upload images of your company here</div>
+            <div className="ui two column grid">
+                <div className="column">
+                    <h1>Profile Photo</h1>
                 </div>
-                <div className="twelve wide column">
-                    <section>
-                        <div>
-                            <label htmlFor="work_sample_uploader" className="profile-photo">
-                                {showProfileImg}
-                            </label>
-                            <input id="selectFile" type="file" style={{ display: 'none' }} onChange={this.fileSelectedHandler} accept="image/*" multiple />
-                        </div>
-                    </section>
+                <div className="column">
+                    <Button htmlFor="file" as="label" className="ui small circular image" ><img src={imageId}
+                        />
+                    </Button>
+                    <br></br>
+                    <button type="submit" style={{ display: this.state.uploadButton, }} onClick={this.uploadAndSave} className="ui teal button"><i className="upload icon"></i>Upload</button>
+                        <input type="file" id="file" style={{ display: "none" }} onChange={this.fileSelectedChange} />  
                 </div>
+                
             </div>
         )
     }

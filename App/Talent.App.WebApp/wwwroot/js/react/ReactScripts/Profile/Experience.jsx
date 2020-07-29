@@ -1,60 +1,48 @@
-﻿/* Language section */
+﻿/* Experience section */
 import React from 'react';
 import Cookies from 'js-cookie';
-import { ChildSingleInput } from '../Form/SingleInput.jsx';
-import { Table, Form, Input, Select, Button, Icon, Dropdown, Option } from 'semantic-ui-react';
-import moment from 'moment'
+import { Button, Table, Grid, Icon, Dropdown, Form } from 'semantic-ui-react';
+import { TableRowExperience } from '../Form/TableBody.jsx';
+import DatePicker from 'react-datepicker';
+import moment from 'moment';
 
-export default class Language extends React.Component {
+export default class Experience extends React.Component {
     constructor(props) {
         super(props);
-
+        const experienceData = props.experienceData ?
+            Object.assign([], props.experienceData)
+            : []
         this.state = {
-            showEditSection: false,
-            currentlyEditing: false,
-            langname: "",
-            langlevel: "",
-            experience: [],
-            experienc: [],
-            val: "",
-            data: {
-                company: "",
-                position: "",
-                responsibilities: "",
-                start: "",
-                end: ""
-            },
-            updateData: {
-                id: " ",
-                company: "",
-                position: "",
-                responsibilities: "",
-                start: "",
-                end: ""
-            },
-            name: "",
-            level: ""
+            addNew: false,
+            experiences: experienceData,
+            newExperience: {
+                company: '',
+                position: '',
+                responsibilities: '',
+                start:'',
+                end:'' 
+                },
         }
-
-        this.openEdit = this.openEdit.bind(this)
-        this.closeEdit = this.closeEdit.bind(this)
-        this.check = this.check.bind(this)
+        this.loadExperience = this.loadExperience.bind(this)
+        this.addExperience = this.addExperience.bind(this)
         this.handleChange = this.handleChange.bind(this)
-        this.loadData = this.loadData.bind(this)
-        this.addExperience = this.addExperience.bind(this);
-        this.addExperiences = this.addExperiences.bind(this)
-        this.deleteExperience = this.deleteExperience.bind(this);
-        this.deleteExperiences = this.deleteExperiences.bind(this);
-        this.updateExperience = this.updateExperience.bind(this);
-        this.updateExperiences = this.updateExperiences.bind(this);
-        this.updateWithoutSave = this.updateWithoutSave.bind(this)
+        this.saveAddNew = this.saveAddNew.bind(this)
+        this.closeAdd = this.closeAdd.bind(this)
+        this.UpdateExperience = this.UpdateExperience.bind(this)
+        this.deleteExperience = this.deleteExperience.bind(this)
+        this.renderCell = this.renderCell.bind(this)
+        this.handleEndDateChange = this.handleEndDateChange.bind(this)
+        this.handleStartDateChange = this.handleStartDateChange.bind(this)
+    };
+
+    componentWillReceiveProps(nextProps) {
+        
+        this.setState({
+            experiences: nextProps.experienceData,
+        });
     }
 
-    componentDidMount() {
-        this.loadData();
-    }
-
-    loadData() {
+    loadExperience() {
         var cookies = Cookies.get('talentAuthToken');
         $.ajax({
             url: 'http://localhost:60290/profile/profile/getExperience',
@@ -64,88 +52,117 @@ export default class Language extends React.Component {
             },
             type: "GET",
             success: function (res) {
-                console.log(res.data)
-                this.updateWithoutSave(res.data)
+                this.setState({ experiences: res.data })
+                this.props.updataState({ experience: res.data })
             }.bind(this)
         })
+
     }
 
-    updateWithoutSave(newValues) {
-        console.log(newValues)
-        let newExperience = Object.assign([], this.state.experience, newValues)
-        this.setState({
-            experience: newExperience
-        })
-        console.log(this.state.experience)
-    }
-
-    openEdit() {
-      
-        this.setState({
-            showEditSection: true,
-            updateData: { id: null }
-        })
-    }
-
-    closeEdit() {
-        this.setState({
-            showEditSection: false
-        })
-        console.log("Close Edit:" + this.state.currentlyEditing);
-    }
-
+   
     addExperience() {
-        console.log("addExperience called");
-        this.setState({
-            experienc: this.state.data
-        }, this.addExperiences);
-
+        this.setState({ addNew: true,
+            newExperience: {
+                company: '',
+                position: '',
+                responsibilities: '',
+                start:'',
+                end:'' 
+                }, });
     }
 
-    deleteExperience (lang) {
-        console.log(lang)
+    handleChange(event) {
+        event.persist()
+        const data = Object.assign({}, this.state.newExperience)
+        data[event.target.name] = event.target.value
         this.setState({
-            experienc: lang,
-            experience: []
-        }, this.deleteExperiences)
+            newExperience: data
+        })
     }
 
+    handleStartDateChange(event) {
+        const data = Object.assign({}, this.state.newExperience)
+        data.start = event
+        this.setState({ newExperience: data})
+    }
 
-    addExperiences() {
-        console.log("Add Experience called");
-        console.log(JSON.stringify(this.state.experienc))
+    handleEndDateChange(event) {
+        const data = Object.assign({}, this.state.newExperience)
+        data.end = event
+        this.setState({ newExperience: data })
+    }
+   
+    saveAddNew() {
+        
+        const addNewExperience = this.state.newExperience;
+        
+        let isNull = addNewExperience.company.length == 0 || addNewExperience.position.length == 0
+            || addNewExperience.responsibilities == 0 || addNewExperience.start.length == 0 || addNewExperience.end.length == 0;
+        if (isNull) {
+            TalentUtil.notification.show("Add item should not be null", "error", null, null)
+        }
+        else {
+            var cookies = Cookies.get('talentAuthToken');
+            $.ajax({
+                url: 'http://localhost:60290/profile/profile/addExperience',
+                headers: {
+                    'Authorization': 'Bearer ' + cookies,
+                    'Content-Type': 'application/json'
+                },
+                type: "POST",
+                data: JSON.stringify(addNewExperience),
+                success: function (res) {
+                    if (res.success == true) {
+                        TalentUtil.notification.show("Profile updated sucessfully", "success", null, null)
+                        this.loadExperience();
+                    } else {
+                        TalentUtil.notification.show("Profile did not update successfully", "error", null, null)
+                    }
+                }.bind(this),
+                error: function (res, a, b) {
+                   // console.log(res)
+                    
+                }
+            })
+        }
+        this.closeAdd();
+    }
+
+    closeAdd() {
+        this.setState({ addNew: false });
+    }
+
+    UpdateExperience(data, index) {
+       
+        const { experiences } = this.state;
+        var result = Object.assign({}, experiences[index], data);
         var cookies = Cookies.get('talentAuthToken');
         $.ajax({
-            url: 'http://localhost:60290/profile/profile/addExperience',
+            url: 'http://localhost:60290/profile/profile/updateExperience',
             headers: {
                 'Authorization': 'Bearer ' + cookies,
                 'Content-Type': 'application/json'
             },
             type: "POST",
-            data: JSON.stringify(this.state.experienc),
+            data: JSON.stringify(result),
             success: function (res) {
-                console.log(res, res.success + "successmess")
+               // console.log(res)
                 if (res.success == true) {
-                    TalentUtil.notification.show("Experience Added sucessfully", "success", null, null)
-                    this.loadData()
+                    TalentUtil.notification.show("Profile updated sucessfully", "success", null, null)
+                    this.loadExperience();
                 } else {
-                    TalentUtil.notification.show("Experience did not Added successfully", "error", null, null)
+                    TalentUtil.notification.show("Profile did not update successfully", "error", null, null)
                 }
-
             }.bind(this),
             error: function (res, a, b) {
-                console.log(res.success + "errormess")
                 console.log(res)
-                console.log(a)
-                console.log(b)
+               
             }
         })
-
     }
 
-    deleteExperiences() {
-
-        console.log(JSON.stringify(this.state.experienc))
+    deleteExperience(id) {
+        const data = this.state.experiences.find(x => x.id == id);
         var cookies = Cookies.get('talentAuthToken');
         $.ajax({
             url: 'http://localhost:60290/profile/profile/deleteExperience',
@@ -154,331 +171,131 @@ export default class Language extends React.Component {
                 'Content-Type': 'application/json'
             },
             type: "POST",
-            data: JSON.stringify(this.state.experienc),
+            data: JSON.stringify(data),
             success: function (res) {
-                console.log(res, res.success + "successmess")
+                console.log(res)
                 if (res.success == true) {
-                    TalentUtil.notification.show("Experience Deleted sucessfully", "success", null, null)
-                    console.log("going to load data")
-                    this.loadData()
+                    TalentUtil.notification.show("Profile updated sucessfully", "success", null, null)
+                    this.loadExperience();
                 } else {
-                    TalentUtil.notification.show("Experience did not deleted successfully", "error", null, null)
+                    TalentUtil.notification.show("Profile did not update successfully", "error", null, null)
                 }
 
             }.bind(this),
             error: function (res, a, b) {
-                console.log(res.success + "errormess")
                 console.log(res)
-                console.log(a)
-                console.log(b)
+               
             }
         })
     }
 
-    updateExperience() {
-        console.log(this.state.experienc)
-        this.setState({
-            experienc: this.state.updateData
-        }, this.updateExperiences)
-    }
-
-    updateExperiences() {
-
-        console.log(JSON.stringify(this.state.experienc))
-        var cookies = Cookies.get('talentAuthToken');
-        $.ajax({
-            url: 'http://localhost:60290/profile/profile/UpdateExperience',
-            headers: {
-                'Authorization': 'Bearer ' + cookies,
-                'Content-Type': 'application/json'
-            },
-            type: "POST",
-            data: JSON.stringify(this.state.experienc),
-            success: function (res) {
-                console.log(res, res.success + "successmess")
-                if (res.success == true) {
-                    TalentUtil.notification.show("Experience updated sucessfully", "success", null, null)
-                    console.log("going to load data")
-                    this.loadData()
-                } else {
-                    TalentUtil.notification.show("Experience did not update successfully", "error", null, null)
-                }
-
-            }.bind(this),
-            error: function (res, a, b) {
-                console.log(res.success + "errormess")
-                console.log(res)
-                console.log(a)
-                console.log(b)
-            }
-        })
-        this.cancel()
-    }
-
-    check(lang) {
-        console.log(lang)
-        this.setState({
-            currentlyEditing: true,
-            updateData: {
-                id: lang.id,
-                company: lang.company,
-                position: lang.position,
-                responsibilities: lang.responsibilities,
-                start: lang.start,
-                end: lang.end
-            }
-        })
-
-    }
-
-    cancel() {
-        this.setState({
-            currentlyEditing: false,
-        })
-        console.log("Cancel clicked after:" + this.state.currentlyEditing);
-    }
-
-    handleChange() {
-
-        if (this.state.updateData.id != null) {
-            const updateData = Object.assign({}, this.state.updateData);
-            updateData[event.target.name] = event.target.value;
-            this.setState({ updateData }, () => console.log(this.state.updateData))
+    renderCell() {
+        const { experiences } = this.state;
+       
+        if (experiences.length != 0) {
+            return this.state.experiences.map((x, index) => {
+                return (
+                    <TableRowExperience key={x.id}
+                        displayRowItem={x}
+                        updateTableRow={this.UpdateExperience}
+                        deleteExperience={() => this.deleteExperience(x.id)}
+                        experienceIndex={index}
+                    />
+                )
+            })
         }
-        else {
-            const data = Object.assign({}, this.state.data);
-            data[event.target.name] = event.target.value;
-            this.setState({ data }, () => console.log(this.state.data))
-        }
-
-
+        return null;
     }
 
     render() {
+        const { newExperience } = this.state;
         return (
-            this.state.showEditSection ? this.renderEdit() : this.renderDisplay()
-        )
-    }
-
-    renderEdit() {
-
-        return (
-
-            <div className='ui sixteen wide column'>
-                <React.Fragment>
-
-                    <Form>
-                        <Form.Group widths='equal'>
-                            <Form.Field control={Input}
-                                placeholder='Add Company'
-                                name="company"
-                                onChange={this.handleChange}
-                            />
-
-                            <Form.Field control={Input}
-                                placeholder='Add Position'
-                                name="position"
-                                onChange={this.handleChange}
-                            />
-                        </Form.Group>
-                        <Form.Group widths='equal'>
-                            <Form.Field control={Input}
-                                type="date"
-                                placeholder='Start Date'
-                                name="start"
-                                onChange={this.handleChange}
-                            />
-
-                            <Form.Field control={Input}
-                                type="date" placeholder='End Date'
-                                name="end"
-                                onChange={this.handleChange}
-                            />
-                        </Form.Group>
-                        <Form.Group widths='equal'>
-                            <Form.Field control={Input}
-                                placeholder='Add Responsibilities'
-                                name="responsibilities"
-                                onChange={this.handleChange}
-                            />
-                        </Form.Group>
-                        <Form.Field>
-                            <button type="button" className="ui teal button" onClick={this.addExperience}>Add</button>
-                            <button type="button" className="ui button" onClick={this.closeEdit}>Cancel</button>
-                        </Form.Field>
-                    </Form>
-                    <br />
-                </React.Fragment>
-
-                <React.Fragment>
-                    {this.renderDisplay()}
-                </React.Fragment>
-            </div>
-        )
-    }
-
-    renderDisplay() {
-        console.log("Called Display");
-        console.log(this.state.updateData);
-
-        const { experience } = this.state;
-
-        let current_datetime_start = new Date(this.state.updateData.start);
-        let formatted_start = current_datetime_start.getFullYear() + "-" + ("0" + (current_datetime_start.getMonth() + 1)).slice(-2) + "-" + ("0" + current_datetime_start.getDate()).slice(-2) 
-
-        let current_datetime_end = new Date(this.state.updateData.end);
-        let formatted_end = current_datetime_end.getFullYear() + "-" + ("0" + (current_datetime_end.getMonth() + 1)).slice(-2) + "-" + ("0" + current_datetime_end.getDate()).slice(-2) 
-
-        return (
-            <div className='row'>
-                <div className="ui sixteen wide column">
-                    <React.Fragment>
-                        <Table fixed>
-                            <Table.Header>
-                                <Table.Row>
-                                    <Table.HeaderCell>Company</Table.HeaderCell>
-                                    <Table.HeaderCell>Position</Table.HeaderCell>
-                                    <Table.HeaderCell>Responsibilities</Table.HeaderCell>
-                                    <Table.HeaderCell>Start</Table.HeaderCell>
-                                    <Table.HeaderCell>End</Table.HeaderCell>
-                                    <Table.HeaderCell>
-                                        <button type="button" className="ui floated teal button" onClick={this.openEdit}>+ Add New</button>
-                                    </Table.HeaderCell>
-                                </Table.Row>
-                            </Table.Header>
-                            <Table.Body>
-                                {experience.map((name) => (
-                                    <Table.Row key={name.id}>
-                                        <Table.Cell>
-                                            {this.state.currentlyEditing && this.state.updateData.id === name.id ? (
-
-                                                <Table.Cell>
-                                                    <Form>
-                                                        <Form.Field control={Input}
-                                                            placeholder='Add Company'
-                                                            name="company"
-                                                            value={this.state.updateData.company}
-                                                            onChange={this.handleChange}
-                                                        />
-                                                    </Form>
-                                                </Table.Cell>
-                                            )
-                                                :
-                                                (
-                                                    <Table.Cell>{name.company}</Table.Cell>
-                                                )
-                                            }
-                                        </Table.Cell>
-                                        <Table.Cell>
-                                            {this.state.currentlyEditing && this.state.updateData.id === name.id ? (
-                                                <div>
-                                                    <Table.Cell>
-                                                        <Form>
-                                                            <Form.Field control={Input}
-                                                                placeholder='Add Position'
-                                                                name="position"
-                                                                value={this.state.updateData.position}
-                                                                onChange={this.handleChange}
-                                                            />
-                                                        </Form>
-                                                    </Table.Cell>
-
-                                                </div>
-
-                                            )
-                                                : (
-                                                    <Table.Cell>{name.position}</Table.Cell>
-                                                )
-                                            }
-                                        </Table.Cell>
-                                        <Table.Cell>
-                                            {this.state.currentlyEditing && this.state.updateData.id === name.id ? (
-
-                                                <Table.Cell>
-                                                    <Form>
-                                                        <Form.Field control={Input}
-                                                            placeholder='Add Responsibilities'
-                                                            name="responsibilities"
-                                                            value={this.state.updateData.responsibilities}
-                                                            onChange={this.handleChange}
-                                                        />
-                                                    </Form>
-                                                </Table.Cell>
-                                            )
-                                                :
-                                                (
-                                                    <Table.Cell>{name.responsibilities}</Table.Cell>
-                                                )
-                                            }
-                                        </Table.Cell>
-                                        <Table.Cell>
-                                            {this.state.currentlyEditing && this.state.updateData.id === name.id ? (
-
-                                                <Table.Cell>
-                                                    <Form>
-                                                        <Form.Field control={Input}
-                                                            type="date"
-                                                            placeholder='Start Date'
-                                                            name="start"
-                                                            value={formatted_start}
-                                                            onChange={this.handleChange}
-                                                        />
-                                                    </Form>
-                                                </Table.Cell>
-                                            )
-                                                :
-                                                (
-                                                    <Table.Cell>{moment(name.start).format('Do MMMM YYYY')}</Table.Cell>
-                                                )
-                                            }
-                                        </Table.Cell>
-                                        <Table.Cell>
-                                            {this.state.currentlyEditing && this.state.updateData.id === name.id ? (
-
-                                                <Table.Cell>
-                                                    <Form>
-                                                        <Form.Field control={Input}
-                                                            type="date"
-                                                            placeholder='End Date'
-                                                            name="end"
-                                                            value={formatted_end}
-                                                            onChange={this.handleChange}
-                                                        />
-                                                    </Form>
-                                                </Table.Cell>
-                                            )
-                                                :
-                                                (
-                                                    <Table.Cell>{moment(name.end).format('Do MMMM YYYY')}</Table.Cell>
-                                                )
-                                            }
-                                        </Table.Cell>
-                                        <Table.Cell textAlign='right'>
-                                            {this.state.currentlyEditing && this.state.updateData.id === name.id ? (
-                                                <Table.Cell>
-                                                    <button type="button" className="ui teal button" onClick={this.updateExperience.bind(this)}>Update</button>
-                                                    <button type="button" className="ui button" onClick={this.cancel.bind(this)}>Cancel</button>
-                                                </Table.Cell>
-                                            )
-                                                : (
-                                                    <Table.Cell>
-                                                        <Table.Cell>
-                                                            <Icon link name='pencil' onClick={this.check.bind(this, name)} />
-                                                        </Table.Cell>
-                                                        <Table.Cell>
-                                                            <Icon link name='delete' onClick={this.deleteExperience.bind(this, name)} />
-                                                        </Table.Cell>
-                                                    </Table.Cell>
-                                                )}
-                                        </Table.Cell>
-                                    </Table.Row>
-                                ))}
-                            </Table.Body>
-
-                        </Table>
-                    </React.Fragment>
-                </div>
-            </div>
+            <Grid.Column>
+                {this.state.addNew && (
+                    <Grid divided>
+                        <Grid.Row columns={2}>
+                            <Grid.Column>
+                                <label>Company:</label>
+                                <input type='text'
+                                    onChange={this.handleChange}
+                                    name='company'
+                                    value={newExperience.company} />
+                            </Grid.Column>
+                            <Grid.Column>
+                                <label>Position:</label>
+                                <input type='text'
+                                    onChange={this.handleChange}
+                                    name='position'
+                                    value={newExperience.position} />
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row columns={2}>
+                            <Grid.Column>
+                                <Form.Field>
+                                    <label>Start Date:</label>
+                                    <DatePicker
+                                        selected={newExperience.start}
+                                        onChange={this.handleStartDateChange}
+                                        name='start'
+                                    />
+                                </Form.Field>
+                                
+                            </Grid.Column>
+                            <Grid.Column>
+                                <Form.Field>
+                                <label>End Date:</label>
+                                <DatePicker
+                                    selected={newExperience.end}
+                                    onChange={this.handleEndDateChange}
+                                    name='end'
+                                    />
+                                </Form.Field>
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row>
+                            <Grid.Column>
+                                <label>Responsibilities:</label>
+                                <input type='text'
+                                    onChange={this.handleChange}
+                                    name='responsibilities'
+                                    value={newExperience.responsibilities} />
+                            </Grid.Column>
+                        </Grid.Row>
+                        <Grid.Row>
+                            <Grid.Column>
+                                <button type="button" className="ui teal button" onClick={this.saveAddNew}>Add</button>
+                                <button type="button" className="ui button" onClick={this.closeAdd}>Cancel</button>
+                            </Grid.Column>
+                        </Grid.Row>
+                    </Grid>
+                )
+                }
+                <Table celled columns={6} fixed>
+                    <Table.Header>
+                        <Table.Row>
+                            <Table.HeaderCell>Company</Table.HeaderCell>
+                            <Table.HeaderCell>Position</Table.HeaderCell>
+                            <Table.HeaderCell>Responsibilities</Table.HeaderCell>
+                            <Table.HeaderCell>Start</Table.HeaderCell>
+                            <Table.HeaderCell>End</Table.HeaderCell>
+                            <Table.HeaderCell>
+                                <Button
+                                    color='black'
+                                    onClick={this.addExperience}
+                                    floated='right'
+                                    type='button'
+                                >
+                                    <Icon name='add' />
+                                    Add New
+                                </Button>
+                            </Table.HeaderCell>
+                        </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                        {this.renderCell()}
+                    </Table.Body>
+                </Table>
+            </Grid.Column>
         )
     }
 }

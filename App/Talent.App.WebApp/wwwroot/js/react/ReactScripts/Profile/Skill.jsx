@@ -47,6 +47,9 @@ export default class Experience extends React.Component {
     }
 
     loadData() {
+        this.setState({
+            showEditSection:false})
+            
         var cookies = Cookies.get('talentAuthToken');
         $.ajax({
             url: 'http://localhost:60290/profile/profile/getSkill',
@@ -56,7 +59,7 @@ export default class Experience extends React.Component {
             },
             type: "GET",
             success: function (res) {
-                console.log(res.data)
+               // console.log(res.data)
                 this.updateWithoutSave(res.data)
             }.bind(this)
         })
@@ -68,7 +71,7 @@ export default class Experience extends React.Component {
         this.setState({
             skills: newSkill
         })
-        console.log("Skill State",this.state.skills)
+       // console.log("Skill State",this.state.skills)
     }
 
     openEdit() {
@@ -83,7 +86,7 @@ export default class Experience extends React.Component {
         this.setState({
             showEditSection: false
         })
-        console.log("Close Edit:" + this.state.currentlyEditing);
+       // console.log("Close Edit:" + this.state.currentlyEditing);
     }
 
     addSkill() {
@@ -95,7 +98,7 @@ export default class Experience extends React.Component {
     }
 
     deleteSkill(lang) {
-        console.log(lang)
+       // console.log(lang)
         this.setState({
             skill: lang,
             skills: []
@@ -104,8 +107,8 @@ export default class Experience extends React.Component {
 
 
     addSkills() {
-        console.log("Add skills called");
-        console.log(JSON.stringify(this.state.skill))
+       // console.log("Add skills called");
+       // console.log(JSON.stringify(this.state.skill))
         var cookies = Cookies.get('talentAuthToken');
         $.ajax({
             url: 'http://localhost:60290/profile/profile/addSkill',
@@ -127,9 +130,9 @@ export default class Experience extends React.Component {
             }.bind(this),
             error: function (res, a, b) {
                 console.log(res.success + "errormess")
-                console.log(res)
-                console.log(a)
-                console.log(b)
+               // console.log(res)
+                //console.log(a)
+                //console.log(b)
             }
         })
 
@@ -137,7 +140,7 @@ export default class Experience extends React.Component {
 
     deleteSkills() {
 
-        console.log(JSON.stringify(this.state.skill))
+       // console.log(JSON.stringify(this.state.skill))
         var cookies = Cookies.get('talentAuthToken');
         $.ajax({
             url: 'http://localhost:60290/profile/profile/deleteSkill',
@@ -148,10 +151,10 @@ export default class Experience extends React.Component {
             type: "POST",
             data: JSON.stringify(this.state.skill),
             success: function (res) {
-                console.log(res, res.success + "successmess")
+               //console.log(res, res.success + "successmess")
                 if (res.success == true) {
                     TalentUtil.notification.show("Skill Deleted sucessfully", "success", null, null)
-                    console.log("going to load data")
+                   // console.log("going to load data")
                     this.loadData()
                 } else {
                     TalentUtil.notification.show("Skill did not deleted successfully", "error", null, null)
@@ -160,15 +163,15 @@ export default class Experience extends React.Component {
             }.bind(this),
             error: function (res, a, b) {
                 console.log(res.success + "errormess")
-                console.log(res)
-                console.log(a)
-                console.log(b)
+               // console.log(res)
+               // console.log(a)
+               // console.log(b)
             }
         })
     }
 
     updateSkill() {
-        console.log(this.state.skill)
+       // console.log(this.state.skill)
         this.setState({
             skill: this.state.updateData
         }, this.updateSkills)
@@ -176,7 +179,7 @@ export default class Experience extends React.Component {
 
     updateSkills() {
 
-        console.log(JSON.stringify(this.state.skill))
+        //console.log(JSON.stringify(this.state.skill))
         var cookies = Cookies.get('talentAuthToken');
         $.ajax({
             url: 'http://localhost:60290/profile/profile/UpdateSkill',
@@ -199,16 +202,16 @@ export default class Experience extends React.Component {
             }.bind(this),
             error: function (res, a, b) {
                 console.log(res.success + "errormess")
-                console.log(res)
-                console.log(a)
-                console.log(b)
+               // console.log(res)
+                //console.log(a)
+                //console.log(b)
             }
         })
         this.cancel()
     }
 
     check(lang) {
-        console.log(lang)
+       // console.log(lang)
         this.setState({
             currentlyEditing: true,
             updateData: {
@@ -224,7 +227,7 @@ export default class Experience extends React.Component {
         this.setState({
             currentlyEditing: false,
         })
-        console.log("Cancel clicked after:" + this.state.currentlyEditing);
+       // console.log("Cancel clicked after:" + this.state.currentlyEditing);
     }
 
     handleChange() {
@@ -295,8 +298,8 @@ export default class Experience extends React.Component {
     }
 
     renderDisplay() {
-        console.log("Called Display");
-        console.log(this.state.updateData);
+       // console.log("Called Display");
+        //console.log(this.state.updateData);
 
         const { skills } = this.state;
 
@@ -321,6 +324,7 @@ export default class Experience extends React.Component {
                                             {this.state.currentlyEditing && this.state.updateData.id === name.id ? (
 
                                                 <Table.Cell>
+                                                   
                                                     <Form>
                                                         <Form.Field control={Input}
                                                             placeholder='Add Skill'
@@ -329,18 +333,19 @@ export default class Experience extends React.Component {
                                                             onChange={this.handleChange}
                                                         />
                                                     </Form>
+                                                   
                                                 </Table.Cell>
                                             )
                                                 :
                                                 (
-                                                    <Table.Cell>{name.name}</Table.Cell>
+                                                    <div><Table.Cell>{name.name}</Table.Cell></div>
                                                 )
                                             }
                                         </Table.Cell>
                                         <Table.Cell>
                                             {this.state.currentlyEditing && this.state.updateData.id === name.id ? (
-                                                <div>
-                                                    <Table.Cell>
+                                                
+                                                    
                                                         <Form>
                                                             <select className="ui right labeled dropdown"
                                                                 placeholder="Language Level"
@@ -354,33 +359,30 @@ export default class Experience extends React.Component {
                                                                 <option value="Expert">Expert</option>
                                                             </select>
                                                         </Form>
-                                                    </Table.Cell>
-
-                                                </div>
+                               
+                                                
 
                                             )
                                                 : (
-                                                    <Table.Cell>{name.level}</Table.Cell>
+                                                    <div>{name.level}</div>
                                                 )
                                             }
                                         </Table.Cell>
                                         <Table.Cell textAlign='right'>
                                             {this.state.currentlyEditing && this.state.updateData.id === name.id ? (
-                                                <Table.Cell>
-                                                    <button type="button" className="ui teal button" onClick={this.updateSkill.bind(this)}>Update</button>
+                                                <div>
+                                                    <button type="button" className="ui teal button"  onClick={this.updateSkill.bind(this)}>Update</button>
                                                     <button type="button" className="ui button" onClick={this.cancel.bind(this)}>Cancel</button>
-                                                </Table.Cell>
+                                                </div>
                                             )
                                                 : (
-                                                    <Table.Cell>
-                                                        <Table.Cell>
+                                                    <div>
+                                                        
                                                             <Icon link name='pencil' onClick={this.check.bind(this, name)} />
-                                                        </Table.Cell>
-                                                        <Table.Cell>
                                                             <Icon link name='delete' onClick={this.deleteSkill.bind(this, name)} />
-                                                        </Table.Cell>
-                                                    </Table.Cell>
-
+                                                        
+                                                   
+                                                     </div>
                                                 )}
                                         </Table.Cell>
                                     </Table.Row>

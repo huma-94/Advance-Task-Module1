@@ -424,6 +424,8 @@ namespace Talent.Services.Profile.Controllers
             throw new NotImplementedException();
         }
 
+        // TI
+
         [HttpGet("getProfileImage")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
         public ActionResult getProfileImage(string Id)
@@ -438,16 +440,17 @@ namespace Talent.Services.Profile.Controllers
         public async Task<ActionResult> UpdateProfilePhoto()
         {
             //Your code here;
-            var returnValue = false;
-            var id = _userAppContext.CurrentUserId;
             IFormFile file = Request.Form.Files[0];
-            if (file != null)
+
+            if (await _profileService.UpdateTalentPhoto(_userAppContext.CurrentUserId, file))
             {
-                Console.WriteLine("here is the file name " + file.FileName);
-                returnValue = await _profileService.UpdateTalentPhoto(id, file);
+                return Json(new { Success = true });
             }
-            return Json(new { Success = returnValue });
+
+            return Json(new { Success = false });
+
         }
+
         [HttpPost("updateTalentCV")]
         [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "talent")]
         public async Task<ActionResult> UpdateTalentCV()
@@ -559,7 +562,7 @@ namespace Talent.Services.Profile.Controllers
         {
             if (ModelState.IsValid)
             {
-                //check if employer is client 5be40d789b9e1231cc0dc51b
+                
                 var recruiterClients =(await _recruiterRepository.GetByIdAsync(_userAppContext.CurrentUserId)).Clients;
 
                 if (recruiterClients.Select(x => x.EmployerId == employer.Id).FirstOrDefault())
@@ -770,25 +773,6 @@ namespace Talent.Services.Profile.Controllers
                 return Json(new { Success = false, e.Message });
             }
         }
-
-        //[HttpGet("getClientDetailsToSendMail")]
-        //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme, Roles = "recruiter")]
-        //public async Task<IActionResult> GetClientDetailsToSendMail(string clientId)
-        //{
-        //    try
-        //    {
-        //            var client = await _profileService.GetEmployer(clientId);
-
-        //            string emailId = client.Login.Username;
-        //            string companyName = client.CompanyContact.Name;
-
-        //            return Json(new { Success = true, emailId, companyName });
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        return Json(new { Success = false, Message = e.Message });
-        //    }
-        //}
 
         #endregion
 

@@ -330,6 +330,8 @@ namespace Talent.Services.Profile.Domain.Services
             throw new NotImplementedException();
         }
 
+
+        //TI
         public async Task<bool> UpdateTalentPhoto(string talentId, IFormFile file)
         {
             var fileExtension = Path.GetExtension(file.FileName);
@@ -368,7 +370,6 @@ namespace Talent.Services.Profile.Domain.Services
             return false;
 
         }
-    
 
         public async Task<bool> AddTalentVideo(string talentId, IFormFile file)
         {

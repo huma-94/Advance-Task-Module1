@@ -55,6 +55,9 @@ export default class Language extends React.Component {
     }
 
     loadData() {
+        this.setState({
+            showEditSection:false})
+
         var cookies = Cookies.get('talentAuthToken');
         $.ajax({
             url: 'http://localhost:60290/profile/profile/getLanguage',
@@ -122,7 +125,6 @@ export default class Language extends React.Component {
 
 
     addLanguages() {
-      
         var cookies = Cookies.get('talentAuthToken');
         $.ajax({
             url: 'http://localhost:60290/profile/profile/addLanguage',
@@ -134,12 +136,15 @@ export default class Language extends React.Component {
             data: JSON.stringify(this.state.language),
             success: function (res) {
                 console.log(res, res.success + "successmess")
-                console.log("adding");
+               
+                console.log('Show Edit Section value is ',this.state.showEditSection);
                 if (res.success == true) {
                     TalentUtil.notification.show("Language Added sucessfully", "success", null, null)
-                    this.loadData()
+                   
+                    this.loadData();
                 } else {
-                    TalentUtil.notification.show("Language did not Added successfully", "error", null, null)
+                    TalentUtil.notification.show("Language did not Added successfully", "error", null, null);
+                    
                 }
 
             }.bind(this),
@@ -149,7 +154,9 @@ export default class Language extends React.Component {
                 console.log(a)
                 console.log(b)
             }
-        })
+        });
+      
+      
         
     }
 
@@ -332,6 +339,7 @@ export default class Language extends React.Component {
         const { languages } = this.state;
         
         return(
+            <div class="ui grid">
             <div className='row'>
                   <div className="ui sixteen wide column">
                    <React.Fragment>
@@ -353,7 +361,7 @@ export default class Language extends React.Component {
                                      <Table.Cell>
                                             {this.state.currentlyEditing && this.state.updateData.id === name.id ? (
 
-                                                <Table.Cell>
+                                               <div>
                                                     <Form>
                                                         <Form.Field control={Input}
                                                             placeholder='Add Language'
@@ -362,18 +370,18 @@ export default class Language extends React.Component {
                                                             onChange={this.handleChange}
                                                         />
                                                     </Form>
-                                                </Table.Cell>
+                                                </div>
                                             )
                                                 :
                                                 (
-                                                    <Table.Cell>{name.name}</Table.Cell>
+                                                    <div>{name.name}</div>
                                                 )
                                             }
                                         </Table.Cell>
                                         <Table.Cell>
                                             {this.state.currentlyEditing && this.state.updateData.id  === name.id ? (
                                                 <div>
-                                                    <Table.Cell>
+                                                    
                                                         <Form>
                                                             <select className="ui right labeled dropdown"
                                                                 placeholder="Language Level"
@@ -388,13 +396,12 @@ export default class Language extends React.Component {
                                                                 <option value="Native/Bilingual">Native/Bilingual</option>
                                                             </select>
                                                         </Form>
-                                                    </Table.Cell>
-
+                                                
                                                 </div>
 
                                             )
                                                 : (
-                                                    <Table.Cell>{name.level}</Table.Cell>
+                                                    <div>{name.level}</div>
                                                 )
                                             }
                                         </Table.Cell>
@@ -402,20 +409,20 @@ export default class Language extends React.Component {
 
                                         <Table.Cell textAlign='right'>
                                             {this.state.currentlyEditing && this.state.updateData.id === name.id ? (
-                                                <Table.Cell>
+                                                <div>
                                                     <button type="button"  className="ui teal button"  onClick={this.updateLanguage.bind(this)}>Update</button>
                                                     <button type="button" className="ui button" onClick={this.cancel.bind(this)}>Cancel</button>
-                                                </Table.Cell>
+                                                </div>
                                             )
                                                 : (
-                                                    <Table.Cell>
-                                                        <Table.Cell>
-                                                            <Icon link name='pencil' onClick={this.check.bind(this, name)} />
-                                                        </Table.Cell>
-                                                        <Table.Cell>
-                                                            <Icon link name='delete' onClick={this.deleteLanguage.bind(this, name)} />
-                                                        </Table.Cell>
-                                                    </Table.Cell>
+                                                    
+                                                       <div>
+                                                            <Icon link name='pencil'  Width="89px" onClick={this.check.bind(this, name)} />
+                                                       
+                                                            <Icon link name='delete'  Width="89px" onClick={this.deleteLanguage.bind(this, name)} />
+                                                        
+                                                  
+                                                    </div>
 
                                                 )}
                                         </Table.Cell>    
@@ -433,6 +440,7 @@ export default class Language extends React.Component {
                      </Table>
                     </React.Fragment>  
                   </div>
+            </div>
             </div>
 
         )

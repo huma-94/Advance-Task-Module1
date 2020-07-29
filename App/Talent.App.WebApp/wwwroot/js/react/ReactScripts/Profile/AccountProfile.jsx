@@ -89,9 +89,9 @@ export default class AccountProfile extends React.Component {
             success: function (res) {
                 let newValues= null;
                 if (res.data) {
-                   // console.log("resData", res.data);
+                  
                     this.updateWithoutSave(res.data)
-                   // console.log("State Data",this.state.profileData);
+                  
                     this.setState({isloaded:true});
                     
                 }
@@ -105,25 +105,21 @@ export default class AccountProfile extends React.Component {
     }
 
     updateWithoutSave(newValues) {
-        console.log("updateWithoutSave",newValues);
+        console.log("updateWithoutSave after data load",newValues);
         let newProfile = Object.assign({}, this.state.profileData, newValues)
         this.setState({
             profileData: newProfile
         })
-        console.log("updateWithoutSave AFTER:");
+        //console.log("updateWithoutSave AFTER:");
     }
 
  
     updateAndSaveData(newValues) {
         
         let newProfile = Object.assign({}, this.state.profileData, newValues)
-        console.log("updateandSave Before:");
-        console.log(newProfile);
         this.setState({
             profileData: newProfile
         }, this.saveProfile)
-        console.log("updateandSave after:");
-        console.log(this.state.profileData);
     }
 
     updateForComponentId(componentId, newValues) {
@@ -131,8 +127,8 @@ export default class AccountProfile extends React.Component {
     }
 
     saveProfile() {
-        console.log("Save Profile");
-        console.log(JSON.stringify(this.state.profileData))
+      
+        
         var cookies = Cookies.get('talentAuthToken');
         $.ajax({
             url: 'http://localhost:60290/profile/profile/updateTalentProfile',
@@ -143,7 +139,7 @@ export default class AccountProfile extends React.Component {
             type: "POST",
             data: JSON.stringify(this.state.profileData),
             success: function (res) {
-                console.log(res)
+            
                 if (res.success == true) {
                     TalentUtil.notification.show("Profile updated sucessfully", "success", null, null)
                 } else {
@@ -152,9 +148,7 @@ export default class AccountProfile extends React.Component {
 
             }.bind(this),
             error: function (res, a, b) {
-                console.log(res)
-                console.log(a)
-                console.log(b)
+              
             }
         })
     }
@@ -167,8 +161,8 @@ export default class AccountProfile extends React.Component {
              phone: this.state.profileData.phone
          }
 
-console.log("Is loaded flag before if",this.state.isloaded);
-console.log('Current status',this.state.profileData.jobSeekingStatus);
+//console.log("Is loaded flag before if",this.state.isloaded);
+//console.log('Current status',this.state.profileData.jobSeekingStatus);
    if(this.state.isloaded)   
    {
    return(
@@ -291,7 +285,8 @@ console.log('Current status',this.state.profileData.jobSeekingStatus);
                                                 tooltip='Please upload your profile photo'>  
                                                 
                                                 <PhotoUpload
-                                                imageId={this.state.profileData.profilePhotoUrl}
+                                                imageId={this.state.profileData.profilePhoto}
+                                                profilePhotoUrl={this.state.profileData.profilePhotoUrl}
                                                 updateProfileData={this.updateWithoutSave}
                                                 savePhotoUrl='http://localhost:60290/profile/profile/updateProfilePhoto'
                                             />
